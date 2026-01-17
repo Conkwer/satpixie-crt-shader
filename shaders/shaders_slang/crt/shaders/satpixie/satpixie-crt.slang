@@ -62,7 +62,7 @@ layout(push_constant) uniform Push
 	float tint_mode;
 	float vignette_intensity;
 	float shadow_mask_mode;
-	float image_soften;
+	float overscan_crop;
 } params;
 
 #pragma parameter use_frame "Use Frame Image" 0.0 0.0 1.0 1.0
@@ -75,7 +75,7 @@ layout(push_constant) uniform Push
 #pragma parameter tint_mode "Color Tint (0=Neutral,1=Warm,2=Cold,3=Default)" 0.0 0.0 3.0 1.0
 #pragma parameter vignette_intensity "Vignette" 0.0 0.0 2.0 0.01
 #pragma parameter shadow_mask_mode "Shadow Mask (0=Off,1=Brightness,2=Color)" 1.0 0.0 2.0 1.0
-#pragma parameter image_soften "Image Softening (Original Look)" 0.0 0.0 1.0 1.0
+#pragma parameter overscan_crop "Overscan Crop (CRT-style)" 0.0 0.0 1.0 1.0
 
 #define gl_FragCoord (vTexCoord.xy * params.OutputSize.xy)
 #define backbuffer accum1
@@ -109,8 +109,8 @@ layout(set = 0, binding = 5) uniform sampler2D frametexture;
 
 vec3 tsample( sampler2D samp, vec2 tc, float offs, vec2 resolution )
 {
-    // Apply original softening if enabled
-    if (params.image_soften > 0.5) {
+    // Apply overscan crop if enabled (CRT-style edge cropping)
+    if (params.overscan_crop > 0.5) {
         tc = tc * vec2(1.025, 0.92) + vec2(-0.0125, 0.04);
     }
     vec3 s = pow( abs( texture( samp, vec2( tc.x, 1.0-tc.y ) ).rgb), vec3( 2.2 ) );
