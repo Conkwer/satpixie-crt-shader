@@ -68,10 +68,10 @@ Satpixie fixes all of these with adjustable parameters while maintaining the lig
 
 ### Performance Tip
 For sharper image on low-resolution content, add to the `.slangp` (or use normal2x-hight filter):
-scale_type_x0 = source
+```scale_type_x0 = source
 scale_x0 = 2.0
 scale_type_y0 = source
-scale_y0 = 2.0
+scale_y0 = 2.0```
 
 ## License
 
