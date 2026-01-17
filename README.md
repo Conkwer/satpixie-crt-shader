@@ -39,15 +39,6 @@ Satpixie fixes all of these with adjustable parameters while maintaining the lig
    - Linux: `~/.config/retroarch/shaders/shaders_slang/crt/shaders/satpixie/`
 3. Copy `satpixie-crt.slangp` to `RetroArch/shaders/shaders_slang/crt/`
 
-### Files Included
-satpixie/
-├── accumulate.slang      # Persistence/ghosting pass
-├── blur_horiz.slang      # Horizontal blur pass
-├── blur_vert.slang       # Vertical blur pass
-├── satpixie-crt.slang   # Main CRT effects pass
-└── crtframe.png          # Optional CRT frame texture
-satpixie-crt.slangp       # Shader preset
-
 ## Usage
 
 ### Loading the Shader
@@ -76,7 +67,7 @@ satpixie-crt.slangp       # Shader preset
 - Color Tint: **Default/Greenish (3.00)**
 
 ### Performance Tip
-For sharper image on low-resolution content, add to the `.slangp`:
+For sharper image on low-resolution content, add to the `.slangp` (or use normal2x-hight filter):
 scale_type_x0 = source
 scale_x0 = 2.0
 scale_type_y0 = source
@@ -104,14 +95,6 @@ See the shader source files for full license text.
 ## Why "Satpixie"?
 
 Saturn + newpixie = Satpixie, because this shader is particularly excellent for Sega Saturn and PS1 emulation, providing clean scanlines without the performance overhead of complex shaders like CRT-Royale.
-
-## Contributing
-
-Issues and pull requests are welcome! This shader could benefit from:
-- Additional color tint presets
-- Adjustable scanline intensity
-- More shadow mask patterns
-- Performance optimizations
 
 ## See Also
 
