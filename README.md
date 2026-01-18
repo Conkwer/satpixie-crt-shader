@@ -1,7 +1,7 @@
 # Satpixie CRT Shader for RetroArch
 
 A backport of the Albatross 1.1 improvements to the newpixie CRT shader for RetroArch, featuring full customization controls that were previously only available in the ReShade version.  
-Also added the veriant for ReShade since the original CRT-NewPixie_Albatross_1.1.fx had a bug with the blur sliders.
+Also added the variant for ReShade since the original CRT-NewPixie_Albatross_1.1.fx had a bug with the blur sliders.
 
 ## What is Satpixie?
 
