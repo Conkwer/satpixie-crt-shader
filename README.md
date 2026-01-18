@@ -3,7 +3,7 @@
 Modernized fork of **Mattias Gustavsson's NewPixie CRT** with **user controls**, **straight screen**, and **Natural Vision** mode. Fixes common complaints while preserving the authentic look.
 
 ## Features
-- **No curvature** - Straight, sharp screen geometry (unlike original)
+- **No curvature** - Straight, sharp screen geometry (unlike original); Completely removes curvature dependency.
 - **Natural Vision Mode** - Neutral colors, proper gamma (eliminates green tint)
 - **Controllable Blur** - Horizontal/Vertical sliders (default: 0.0 = sharp)
 - **Toggleable Effects** - Ghosting, Chromatic Aberration, Vignette, Shadow Mask
