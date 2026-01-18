@@ -1,5 +1,4 @@
-# CRT-SatPixie for RetroArch (Slang)
-
+# CRT-SatPixie shader for RetroArch and ReShade  
 Modernized fork of **Mattias Gustavsson's NewPixie CRT** with **user controls**, **straight screen**, and **Natural Vision** mode. Fixes common complaints while preserving the authentic look.
 
 ## Features
