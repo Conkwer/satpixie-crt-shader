@@ -1,55 +1,23 @@
 #include "ReShade.fxh"
 
-// satpixie CRT (newpixie bugfix)
-// originally by Mattias Gustavsson
-// adapted for slang by hunterk
-// modded by "some reddit autist with ChatGPT" (SIC)
-// for better contrast use Zenteon_LocalContrast.fx (included in the standard ReShade package) place it above satpixie and tweak Highlight/Shadow Detail option
-// 1.1 fixed chromatic aberration presence at zero CA value
-// modded by "another non-reddit authist with Sonnet. Routed final color and chroma sampling through GaussianBlur texture instead of the backbuffer; it fixed ChatGPT bugs related to no blur control (needed for water in Sonic and Saturn games, etc.)
-// renamed to satpixie CRT for a shorter name purposes and consistency with the RetroArch backport.
+// Satpixie CRT - Natural Vision Color Correction
+// Replaced NTSC TV tints with PC monitor YIQ adjustment for games like Darkstone
 
-/*
-------------------------------------------------------------------------------
-This software is available under 2 licenses - you may choose the one you like.
-------------------------------------------------------------------------------
-ALTERNATIVE A - MIT License
-Copyright (c) 2016 Mattias Gustavsson
-Permission is hereby granted, free of charge, to any person obtaining a copy of 
-this software and associated documentation files (the "Software"), to deal in 
-the Software without restriction, including without limitation the rights to 
-use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies 
-of the Software, and to permit persons to whom the Software is furnished to do 
-so, subject to the following conditions:
-The above copyright notice and this permission notice shall be included in all 
-copies or substantial portions of the Software.
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR 
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE 
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, 
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE 
-SOFTWARE.
-------------------------------------------------------------------------------
-ALTERNATIVE B - Public Domain (www.unlicense.org)
-This is free and unencumbered software released into the public domain.
-Anyone is free to copy, modify, publish, use, compile, sell, or distribute this 
-software, either in source code form or as a compiled binary, for any purpose, 
-commercial or non-commercial, and by any means.
-In jurisdictions that recognize copyright laws, the author or authors of this 
-software dedicate any and all copyright interest in the software to the public 
-domain. We make this dedication for the benefit of the public at large and to 
-the detriment of our heirs and successors. We intend this dedication to be an 
-overt act of relinquishment in perpetuity of all present and future rights to 
-this software under copyright law.
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR 
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE 
-AUTHORS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN 
-ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION 
-WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-------------------------------------------------------------------------------
-*/
+// YIQ color space matrices
+static const float3x3 RGBtoYIQ = float3x3(
+    0.299,     0.587,     0.114,
+    0.595716, -0.274453, -0.321263,
+    0.211456, -0.522591,  0.311135
+);
+
+static const float3x3 YIQtoRGB = float3x3(
+    1.0,  0.95629572,  0.62102442,
+    1.0, -0.27212210, -0.64738060,
+    1.0, -1.10698902,  1.70461500
+);
+
+static const float3 YIQ_lo = float3(0.0, -0.595716, -0.522591);
+static const float3 YIQ_hi = float3(1.0,  0.595716,  0.522591);
 
 uniform bool use_frame <
 	ui_type = "boolean";
@@ -89,13 +57,48 @@ uniform int ShadowMaskMode <
     ui_type = "combo";
     ui_label = "Shadow Mask Mode";
     ui_items = "Off\0Brightness Lines\0Color Mask\0";
-> = 1;
+> = 2;
 
-uniform int u_tint_mode <
-    ui_type = "combo";
-    ui_label = "Color Tint Mode";
-    ui_items = "Neutral\0Warm\0Cold\0Default\0";
-> = 0;
+// REPLACED: NTSC tint mode with Natural Vision YIQ controls
+uniform float GAMMA_IN <
+    ui_type = "drag";
+    ui_label = "NaturalVision Gamma In";
+    ui_min = 1.0;
+    ui_max = 3.0;
+    ui_step = 0.05;
+> = 2.4;
+
+uniform float GAMMA_OUT <
+    ui_type = "drag";
+    ui_label = "NaturalVision Gamma Out";
+    ui_min = 1.0;
+    ui_max = 3.0;
+    ui_step = 0.05;
+> = 2.2;
+
+uniform float Y_ADJUST <
+    ui_type = "drag";
+    ui_label = "NaturalVision Luminance";
+    ui_min = 0.5;
+    ui_max = 1.5;
+    ui_step = 0.01;
+> = 1.0;
+
+uniform float I_ADJUST <
+    ui_type = "drag";
+    ui_label = "NaturalVision Orange-Cyan";
+    ui_min = 0.5;
+    ui_max = 1.5;
+    ui_step = 0.01;
+> = 1.0;
+
+uniform float Q_ADJUST <
+    ui_type = "drag";
+    ui_label = "NaturalVision Magenta-Green";
+    ui_min = 0.5;
+    ui_max = 1.5;
+    ui_step = 0.01;
+> = 1.0;
 
 uniform float u_vignette_intensity <
     ui_type = "drag";
@@ -142,7 +145,6 @@ uniform float acc_modulate <
 texture2D tAccTex { Width = BUFFER_WIDTH; Height = BUFFER_HEIGHT; Format = RGBA8; };
 sampler sAccTex { Texture=tAccTex; };
 
-//PASS 1
 float3 PrevColor(float4 pos : SV_Position, float2 uv : TEXCOORD0) : SV_Target
 {
 	return tex2D(ReShade::BackBuffer, uv).rgb;
@@ -155,7 +157,6 @@ float4 PS_satpixie_Accum(float4 pos : SV_Position, float2 uv : TEXCOORD0) : SV_T
    return max( a, b * 0.96 );
 }
 
-//PASS 2 AND 3
 texture GaussianBlurTex { Width = BUFFER_WIDTH; Height = BUFFER_HEIGHT; Format = RGBA8; };
 sampler GaussianBlurSampler { Texture = GaussianBlurTex;};
 
@@ -165,7 +166,7 @@ uniform float blur_x <
 	ui_max = 5.0;
 	ui_step = 0.25;
 	ui_label = "Horizontal Blur"; 
-> = 1.0;
+> = 0.0;
 
 uniform float blur_y <
 	ui_type = "drag";
@@ -173,7 +174,7 @@ uniform float blur_y <
 	ui_max = 5.0;
 	ui_step = 0.25;
 	ui_label = "Vertical Blur";
-> = 1.0;
+> = 0.0;
 
 float4 PS_satpixie_Blur(float4 pos : SV_Position, float2 uv_tx : TEXCOORD0) : SV_Target
 {
@@ -191,7 +192,6 @@ float4 PS_satpixie_Blur(float4 pos : SV_Position, float2 uv_tx : TEXCOORD0) : SV
    return sum;
 }
 
-//PASS 4
 uniform int FCount < source = "framecount"; >;
 texture tFrame < source = "crt_satpixie/crtframe.png"; >
 {
@@ -256,25 +256,21 @@ float rand(float2 co){ return frac(sin(dot(co.xy ,float2(12.9898,78.233))) * 437
 
 float4 PS_satpixie_Final(float4 pos: SV_Position, float2 uv_tx : TEXCOORD0) : SV_Target
 {
-    // stop time variable so the screen doesn't wiggle
     float time = mod(FCount, 849.0) * 36.0;
     float2 uv = uv_tx.xy;
     uv.y = 1.0 - uv_tx.y;
-    /* Curve */
+    
     float2 curved_uv = lerp( curve( uv ), uv, 0.4 );
     float scale = -0.101;
     float2 scuv = curved_uv*(1.0-scale)+scale/2.0+float2(0.003, -0.001);
-	
     scuv = lerp(scuv, uv, u_use_uv ? 1.0 : 0.0);
-		
-    /* Main color, Bleed */
+    
     float3 col;
-	
     float x = wiggle_toggle* sin(0.1*time+curved_uv.y*13.0)*sin(0.23*time+curved_uv.y*19.0)*sin(0.3+0.11*time+curved_uv.y*23.0)*0.0012;
     float o =sin(uv_tx.y*1.5)/resolution.x;
     x+=o*0.25;
-    // make time do something again
     time = float(mod(FCount, 640) * 1); 
+    
     if (chroma_shift <= 0.000001) {
         float3 ccol = tsample(GaussianBlurSampler, float2(x+scuv.x+0.0000, scuv.y+0.0000), resolution.y/800.0, resolution );
         col = ccol.xyz + 0.02;
@@ -283,6 +279,7 @@ float4 PS_satpixie_Final(float4 pos: SV_Position, float2 uv_tx : TEXCOORD0) : SV
         col.g = tsample(GaussianBlurSampler,float2(x+scuv.x+0.0000,scuv.y-0.0011),resolution.y/800.0, resolution ).y+0.02;
         col.b = tsample(GaussianBlurSampler,float2(x+scuv.x- chroma_shift,scuv.y+0.0000),resolution.y/800.0, resolution ).z+0.02;
     }
+    
     float i = clamp(col.r*0.299 + col.g*0.587 + col.b*0.114, 0.0, 1.0 );
     i = pow( 1.0 - pow(i,2.0), 1.0 );
     i = (1.0-i) * 0.85 + 0.15; 
@@ -302,52 +299,39 @@ float4 PS_satpixie_Final(float4 pos: SV_Position, float2 uv_tx : TEXCOORD0) : SV
     col += float3(ghs*(1.0-0.299),ghs*(1.0-0.299),ghs*(1.0-0.299))*pow(clamp(float3(3.0,3.0,3.0)*r,float3(0.0,0.0,0.0),float3(1.0,1.0,1.0)),float3(2.0,2.0,2.0))*float3(i,i,i);
     col += float3(ghs*(1.0-0.587),ghs*(1.0-0.587),ghs*(1.0-0.587))*pow(clamp(float3(3.0,3.0,3.0)*g,float3(0.0,0.0,0.0),float3(1.0,1.0,1.0)),float3(2.0,2.0,2.0))*float3(i,i,i);
     col += float3(ghs*(1.0-0.114),ghs*(1.0-0.114),ghs*(1.0-0.114))*pow(clamp(float3(3.0,3.0,3.0)*b,float3(0.0,0.0,0.0),float3(1.0,1.0,1.0)),float3(2.0,2.0,2.0))*float3(i,i,i);
-		
-    /* Level adjustment (curves) */
-
-    float3 tintColor;
-
-    if (u_tint_mode == 0) {
-    tintColor = float3(1.00, 1.00, 1.00);  // Neutral
-} else if (u_tint_mode == 1) {
-    tintColor = float3(1.05, 0.98, 0.95);  // Warm
-} else if (u_tint_mode == 2) {
-    tintColor = float3(0.95, 1.02, 1.07);  // Cold
-} else {
-    tintColor = float3(0.95, 1.05, 0.95);  // Default
-}
-
-    col *= tintColor;
+    
+    /* REPLACED: NTSC tint with Natural Vision YIQ color correction */
+    col = pow(col, float3(GAMMA_IN, GAMMA_IN, GAMMA_IN));
+    col = mul(RGBtoYIQ, col);
+    col = float3(pow(col.x, Y_ADJUST), col.y * I_ADJUST, col.z * Q_ADJUST);
+    col = clamp(col, YIQ_lo, YIQ_hi);
+    col = mul(YIQtoRGB, col);
+    col = pow(col, float3(1.0/GAMMA_OUT, 1.0/GAMMA_OUT, 1.0/GAMMA_OUT));
+    
     col = clamp(col*1.3 + 0.75*col*col + 1.25*col*col*col*col*col, float3(0.0, 0.0, 0.0), float3(10.0, 10.0, 10.0));
 
-    /* Vignette with aspect-aware scaling and 4:3 crop */
+    /* Vignette */
     float2 vignetteUV = curved_uv;
-
     float vignette = 1.0;
 
-    // Only apply special handling in pillarbox (4:3) mode
     if (FrameAspectMode == 1) {
-    float aspect = ReShade::ScreenSize.x / ReShade::ScreenSize.y;
-    float targetAspect = 4.0 / 2.99;
+        float aspect = ReShade::ScreenSize.x / ReShade::ScreenSize.y;
+        float targetAspect = 4.0 / 2.99;
+        float scale = aspect / targetAspect;
+        float border = (1.0 - (1.0 / scale)) * 0.5;
 
-    // Compute horizontal bounds of 4:3 region
-    float scale = aspect / targetAspect;
-    float border = (1.0 - (1.0 / scale)) * 0.5;
-
-    // Crop: skip vignette outside 4:3
-    if (vignetteUV.x > border && vignetteUV.x < (1.0 - border)) {
-        float vignetteX = (vignetteUV.x - border) / (1.0 - 2.0 * border);
-        float vignetteY = vignetteUV.y;
-        float vig = 16.0 * vignetteX * vignetteY * (1.0 - vignetteX) * (1.0 - vignetteY);
+        if (vignetteUV.x > border && vignetteUV.x < (1.0 - border)) {
+            float vignetteX = (vignetteUV.x - border) / (1.0 - 2.0 * border);
+            float vignetteY = vignetteUV.y;
+            float vig = 16.0 * vignetteX * vignetteY * (1.0 - vignetteX) * (1.0 - vignetteY);
+            vignette = 1.3 * pow(0.1 + vig, 0.5);
+        }
+    } else {
+        float vig = 16.0 * vignetteUV.x * vignetteUV.y * (1.0 - vignetteUV.x) * (1.0 - vignetteUV.y);
         vignette = 1.3 * pow(0.1 + vig, 0.5);
     }
-} else {
-    float vig = 16.0 * vignetteUV.x * vignetteUV.y * (1.0 - vignetteUV.x) * (1.0 - vignetteUV.y);
-    vignette = 1.3 * pow(0.1 + vig, 0.5);
-}
 
-col *= lerp(1.0, vignette, u_vignette_intensity);
-
+    col *= lerp(1.0, vignette, u_vignette_intensity);
     time *= scanroll;
 		
     /* Scanlines */
@@ -365,10 +349,9 @@ col *= lerp(1.0, vignette, u_vignette_intensity);
     float maskLine  = saturate(1.0 - abs(center) / aa);
 
     float3 brightnessMask = lerp(1.1, 0.8, maskLine);
-    float stripePhase    = frac(idx);                 // [0..1)
+    float stripePhase    = frac(idx);
     float3 phaseOffsets  = float3(0.0, 1.0/3.0, 2.0/3.0);
     float3 rawDistance   = abs(stripePhase.xxx - phaseOffsets);
-
     float3 circDistance  = min(rawDistance, 1.0 - rawDistance);
     float3 maskLineRGB   = saturate(1.0 - circDistance / aa);
     float3 colorMask     = lerp(0.75, 1.5, maskLineRGB);
@@ -380,13 +363,10 @@ col *= lerp(1.0, vignette, u_vignette_intensity);
     );
     col.rgb *= finalMask;
 
-    /* Tone map */
     col = filmic( col );
 		
     /* Noise */
-    /*float2 seed = floor(curved_uv*resolution.xy*float2(0.5))/resolution.xy;*/
-    float2 seed = curved_uv*resolution.xy;;
-    /* seed = curved_uv; */
+    float2 seed = curved_uv*resolution.xy;
     float lum = dot(col, float3(0.299, 0.587, 0.114));
     float noiseBase = 0.015;
     float scaledNoise = lerp(0.0, noiseBase, lum);
@@ -395,27 +375,16 @@ col *= lerp(1.0, vignette, u_vignette_intensity);
 		
     /* Flicker */
     col *= (1.0-0.004*(sin(50.0*time+curved_uv.y*2.0)*0.5+0.5));
-		
-    /* Clamp */
-//    if(max(abs(uv.x-0.5),abs(uv.y-0.5))>0.5)
-//        col = float3(0.0,0.0,0.0);
-		
-//    if (curved_uv.x < 0.0 || curved_uv.x > 1.0)
-//        col *= 0.0;
-//    if (curved_uv.y < 0.0 || curved_uv.y > 1.0)
-//        col *= 0.0;
 
     uv = curved_uv;
 	
-    /* Frame + Aspect Mode */
+    /* Frame */
     if (use_frame)
     {
-        
         float2 uvFrame = uv_tx.xy;
         float2 uvVig   = uv;             
         if (FrameAspectMode == 1)
         {
-           
             float aspect = ReShade::ScreenSize.x / ReShade::ScreenSize.y;       
             float target = 4.0/3.0;                                            
             float pad = (aspect - target) / (2.0 * aspect);                    
@@ -425,22 +394,20 @@ col *= lerp(1.0, vignette, u_vignette_intensity);
         }
 
         float fvig = clamp(
-    1024.0
-  * ( ((uvVig.x - 0.494) * u_vig_shift + 0.5) )
-  * ( ((uvVig.y - 0.5) * u_vig_shift + 0.5) )
-  * ( 1.0 - ((uvVig.x - 0.5015) * u_vig_shift + 0.5) )
-  * ( 1.0 - ((uvVig.y - 0.5040) * u_vig_shift + 0.5) )
-, 0.6, 1.0 );
+            1024.0 * (((uvVig.x - 0.494) * u_vig_shift + 0.5)) *
+            (((uvVig.y - 0.5) * u_vig_shift + 0.5)) *
+            (1.0 - ((uvVig.x - 0.5015) * u_vig_shift + 0.5)) *
+            (1.0 - ((uvVig.y - 0.5040) * u_vig_shift + 0.5)), 0.6, 1.0 );
 
-    float aspect = ReShade::ScreenSize.x / ReShade::ScreenSize.y;
-    float targetAspect = 3.0 / 1.8;
-    if (aspect > targetAspect) {
-    float targetWidth = targetAspect / aspect;
-    float xMin = 0.5 - targetWidth * 0.5;
-    float xMax = 0.5 + targetWidth * 0.5;
-    float inside = step(xMin, uvVig.x) * step(uvVig.x, xMax);
-    fvig = lerp(1.0, fvig, inside);
-}
+        float aspect = ReShade::ScreenSize.x / ReShade::ScreenSize.y;
+        float targetAspect = 3.0 / 1.8;
+        if (aspect > targetAspect) {
+            float targetWidth = targetAspect / aspect;
+            float xMin = 0.5 - targetWidth * 0.5;
+            float xMax = 0.5 + targetWidth * 0.5;
+            float inside = step(xMin, uvVig.x) * step(uvVig.x, xMax);
+            fvig = lerp(1.0, fvig, inside);
+        }
         col *= fvig;
 
         float4 f = tex2D(sFrame, uvFrame);
@@ -452,26 +419,26 @@ col *= lerp(1.0, vignette, u_vignette_intensity);
 
 technique CRTSatpixie
 {
-	pass PS_CRTSatpixie_Accum
+	pass Accum
 	{
 		VertexShader=PostProcessVS;
 		PixelShader=PS_satpixie_Accum;
 	}
 	
-	pass PS_CRTSatpixie_SaveBuffer {
+	pass SaveBuffer {
 		VertexShader=PostProcessVS;
 		PixelShader=PrevColor;
 		RenderTarget = tAccTex;
 	}
 	
-	pass PS_CRTSatpixie_Blur
+	pass Blur
 	{
 		VertexShader = PostProcessVS;
 		PixelShader = PS_satpixie_Blur;
 		RenderTarget = GaussianBlurTex;
 	}
 	
-	pass PS_CRTSatpixie_Final
+	pass Final
 	{
 		VertexShader = PostProcessVS;
 		PixelShader = PS_satpixie_Final;
