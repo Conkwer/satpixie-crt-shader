@@ -1,36 +1,34 @@
-# Satpixie CRT Shader for RetroArch
+# CRT-SatPixie for RetroArch (Slang)
 
-A backport of the Albatross 1.1 improvements to the newpixie CRT shader for RetroArch, featuring full customization controls that were previously only available in the ReShade version.  
-Also added the variant for ReShade since the original CRT-NewPixie_Albatross_1.1.fx had a bug with the blur sliders.
+Modernized fork of **Mattias Gustavsson's NewPixie CRT** with **user controls**, **straight screen**, and **Natural Vision** mode. Fixes common complaints while preserving the authentic scanline blending.
+
+## Features
+- **No curvature** - Straight, sharp screen geometry (unlike original)
+- **Natural Vision Mode** - Neutral colors, proper gamma (eliminates green tint)
+- **Controllable Blur** - Horizontal/Vertical sliders (default: 0.0 = sharp)
+- **Toggleable Effects** - Ghosting, Chromatic Aberration, Vignette, Shadow Mask
+- **Aspect-aware Vignette** - 4:3 pillarbox or widescreen modes (used for Vignette)
+- **Overscan Crop** - Authentic CRT edge trimming
+- **Multi-platform** - Vulkan/DX11/OpenGL/Metal via Slang. The version for RetroArch and ReShade
 
 ## What is Satpixie?
 
-Satpixie is an enhanced version of Mattias Gustavsson's newpixie CRT shader, backporting all the quality-of-life improvements from the community-modified ReShade version (CRT-NewPixie_Albatross_1.1.fx) to RetroArch's Slang format.
+Satpixie is an enhanced version of Mattias Gustavsson's newpixie CRT shader, backporting some of the quality-of-life improvements from the community-modified ReShade version (CRT-NewPixie_Albatross_1.1.fx) to RetroArch's Slang format.
 
 The original newpixie shader had several issues:
 - Forced chromatic aberration that couldn't be disabled
 - Excessive green color tint
 - Always-on vignette effect
 - Fixed ghosting intensity
-- Screen curvature that caused black screens at 0.0
+- Screen curvature that caused black screens at 0.0 (bug)
+- Blur adjustment do not works even in the forks
 
-Satpixie fixes all of these with adjustable parameters while maintaining the lightweight, single-pass efficiency that makes newpixie popular for PS1/PS2/3D games.
-
-## Features
-
-### New Adjustable Parameters
-- ✅ **Chromatic Aberration Toggle** - Simple on/off instead of forced-on
-- ✅ **Ghosting Control** (0.0-1.0) - Adjust or disable the trailing effect
-- ✅ **Color Tint Modes** - Neutral/Warm/Cold/Original
-- ✅ **Vignette Intensity** (0.0-2.0) - Reduce or disable edge darkening
-- ✅ **Shadow Mask Modes** - Off/Brightness/Color options
-- ✅ **Use Original UV Toggle** - Perfect flat screen with no distortion
-- ✅ **Aspect-aware Curvature** - Proper widescreen handling when enabled
+Satpixie fixes all of these with adjustable parameters while maintaining the lightweight efficiency that makes newpixie popular for PS1/PS2/3D games.
 
 ### Fixed Issues
-- ✅ Curvature at 0.0 no longer causes black screen
-- ✅ All effects can be disabled for a clean, sharp image
-- ✅ Luminance-adaptive noise (less visible in dark areas)
+- Curvature at 0.0 no longer causes black screen
+- All effects can be disabled for a clean, sharp image
+- Luminance-adaptive noise (less visible in dark areas)
 
 ## Installation
 
@@ -46,26 +44,11 @@ Satpixie fixes all of these with adjustable parameters while maintaining the lig
 1. Open RetroArch
 2. **Quick Menu** > **Shaders** > **Load Shader Preset**
 3. Navigate to `shaders_slang/crt/satpixie-crt.slangp`
-4. Select and apply
+4. Select and apply  
 
-### Recommended Settings
 
-**For Clean/Sharp Image (default):**
-- Chromatic Aberration: **OFF (0.00)**
-- Ghosting: **0.00**
-- Vignette: **0.00**
-- Curvature: **0.00**
-- Use Original UV: **ON (1.00)**
-- Color Tint: **Neutral (0.00)**
-- Shadow Mask: **Brightness Lines (1.00)**
-
-**For Original Newpixie Look:**
-- Chromatic Aberration: **ON (1.00)**
-- Ghosting: **0.15**
-- Vignette: **1.00**
-- Curvature: **2.00**
-- Use Original UV: **OFF (0.00)**
-- Color Tint: **Default/Greenish (3.00)**
+For ReShade, You know what to do. 
+Use CRT-Satpixie-Simplified.fx as default; for classic PC games you can try CRT-Satpixie-Darkstone.fx  
 
 ### Performance Tip
 For sharper image on low-resolution content, add to the `.slangp` (or use normal2x-hight filter):
