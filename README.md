@@ -1,6 +1,6 @@
 # CRT-SatPixie for RetroArch (Slang)
 
-Modernized fork of **Mattias Gustavsson's NewPixie CRT** with **user controls**, **straight screen**, and **Natural Vision** mode. Fixes common complaints while preserving the authentic scanline blending.
+Modernized fork of **Mattias Gustavsson's NewPixie CRT** with **user controls**, **straight screen**, and **Natural Vision** mode. Fixes common complaints while preserving the authentic look.
 
 ## Features
 - **No curvature** - Straight, sharp screen geometry (unlike original)
