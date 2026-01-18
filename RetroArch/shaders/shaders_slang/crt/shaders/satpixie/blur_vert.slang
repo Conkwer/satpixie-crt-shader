@@ -55,7 +55,7 @@ layout(push_constant) uniform Push
 	float blur_y;
 } params;
 
-#pragma parameter blur_y "Vertical Blur" 1.0 0.0 5.0 0.25
+#pragma parameter blur_y "Vertical Blur" 0.0 0.0 5.0 0.25
 
 vec2 blur = vec2(0.0, params.blur_y) * params.OutputSize.zw;
 

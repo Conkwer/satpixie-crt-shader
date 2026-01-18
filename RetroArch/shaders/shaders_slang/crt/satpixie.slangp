@@ -22,8 +22,3 @@ filter_linear2 = true
 
 shader3 = shaders/satpixie/satpixie-crt.slang
 filter_linear3 = true
-
-textures = "frametexture"
-frametexture = shaders/satpixie/crtframe.png
-frametexture_linear = true
-frametexture_wrap_mode = clamp_to_border
