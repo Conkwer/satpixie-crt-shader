@@ -58,8 +58,11 @@ scale_y0 = 2.0
 
 ### What shader to choose?  
 
-For ReShade, use CRT-Satpixie-Simplified.fx until you need advanced customization.  
-If you require further adjustments, use CRT-Satpixie-Customizable.fx. CRT-NewPixie-SliderFix.fx is the original NewPixie port with a bugfix. CRT-NewPixie-NoCurve.fx is the same but removes curvature entirely. CRT-Satpixie-Darkstone.fx is specifically for Darkstone (and similar PC games), mimicking a PC monitor (Natural Vision enabled by default, no artifacts, no curvature, color mask).  
+For ReShade, use CRT-Satpixie-Simplified.fx until you need advanced customization (you do not need "textures" for this shader).  
+If you require further adjustments, use CRT-Satpixie-Customizable.fx.  
+CRT-NewPixie-SliderFix.fx is the original NewPixie port with a bugfix. 
+CRT-NewPixie-NoCurve.fx is the same but removes curvature entirely.  
+CRT-Satpixie-Darkstone.fx is specifically for Darkstone (and similar PC games), mimicking a PC monitor (Natural Vision enabled by default, no artifacts, no curvature, color mask).  
 
 For RetroArch, only one shader is currently available, and it works fine with default settings. You can tweak parameters similarly to the ReShade version.  
 
