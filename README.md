@@ -32,7 +32,7 @@ Satpixie fixes all of these with adjustable parameters while maintaining the lig
 ## Installation
 
 For ReShade, you know what to do.   
-I recommend to use CRT-Satpixie-Simplified.fx as default but use other variants if you need more customization; for classic PC games you can try CRT-Satpixie-Darkstone.fx  
+I recommend to use CRT-Satpixie-Simplified.fx as the default one, but it makes senst to try other variants if you need more customization (overscan crop etc, comprehensive gamma controls, etc); for classic PC games you can try CRT-Satpixie-Darkstone.fx  
 
 For RetroArch:  
 1. Download the `satpixie` folder
