@@ -32,23 +32,21 @@ Satpixie fixes all of these with adjustable parameters while maintaining the lig
 
 ## Installation
 
+For ReShade, You know what to do. 
+Use CRT-Satpixie-Simplified.fx as default; for classic PC games you can try CRT-Satpixie-Darkstone.fx  
+
+For RetroArch:  
 1. Download the `satpixie` folder
 2. Copy it to your RetroArch shaders directory:
    - Windows: `RetroArch/shaders/shaders_slang/crt/shaders/satpixie/`
    - Linux: `~/.config/retroarch/shaders/shaders_slang/crt/shaders/satpixie/`
 3. Copy `satpixie-crt.slangp` to `RetroArch/shaders/shaders_slang/crt/`
 
-## Usage
-
 ### Loading the Shader
 1. Open RetroArch
 2. **Quick Menu** > **Shaders** > **Load Shader Preset**
 3. Navigate to `shaders_slang/crt/satpixie-crt.slangp`
 4. Select and apply  
-
-
-For ReShade, You know what to do. 
-Use CRT-Satpixie-Simplified.fx as default; for classic PC games you can try CRT-Satpixie-Darkstone.fx  
 
 ### Performance Tip
 For sharper image on low-resolution content, add to the `.slangp` (or use normal2x-hight filter):
