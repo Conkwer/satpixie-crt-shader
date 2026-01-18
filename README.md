@@ -5,7 +5,7 @@ A backport of the Albatross 1.1 improvements to the newpixie CRT shader for Retr
 ## What is Satpixie?
 
 Satpixie is an enhanced version of Mattias Gustavsson's newpixie CRT shader, backporting all the quality-of-life improvements from the community-modified ReShade version (CRT-NewPixie_Albatross_1.1.fx) to RetroArch's Slang format.
-UPD: also added the veriant for ReShade since the original CRT-NewPixie_Albatross_1.1.fx had a bug with the blur sliders.
+UPD: Also added the veriant for ReShade since the original CRT-NewPixie_Albatross_1.1.fx had a bug with the blur sliders.
 
 The original newpixie shader had several issues:
 - Forced chromatic aberration that couldn't be disabled
