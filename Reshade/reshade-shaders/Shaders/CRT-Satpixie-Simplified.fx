@@ -8,6 +8,7 @@
 // Gamma fix applied - Natural Vision now works correctly
 // Chromatic Aberration toggle fixed
 // BACKPORTED: Aspect-aware vignette + Advanced shadow mask from Satpixie
+// version 20260119
 
 uniform float acc_modulate <
 	ui_type = "drag";
@@ -18,12 +19,12 @@ uniform float acc_modulate <
 uniform bool natural_vision <
 	ui_type = "boolean";
 	ui_label = "Natural Vision Mode";
-> = false;
+> = true;
 
 uniform float gamma <
 	ui_type = "drag"; ui_min = 1.8; ui_max = 2.6; ui_step = 0.1;
 	ui_label = "Gamma (Natural Vision only)";
-> = 2.3;
+> = 2.4;
 
 uniform bool ghosting_on <
 	ui_type = "boolean";
@@ -59,18 +60,18 @@ uniform bool scanroll <
 uniform float blur_x <
 	ui_type = "drag"; ui_min = 0.0; ui_max = 5.0; ui_step = 0.25;
 	ui_label = "Horizontal Blur";
-> = 1.0;
+> = 0.0;
 
 uniform float blur_y <
 	ui_type = "drag"; ui_min = 0.0; ui_max = 5.0; ui_step = 0.25;
 	ui_label = "Vertical Blur";
-> = 1.0;
+> = 0.0;
 
 uniform bool use_advanced_mask <
 	ui_type = "boolean";
 	ui_label = "Advanced Shadow Mask";
 	ui_tooltip = "Off: Simple brightness lines (original)\nOn: RGB stripe patterns (Satpixie)";
-> = false;
+> = true;
 
 uniform int ShadowMaskMode <
     ui_type = "combo";
